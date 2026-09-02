@@ -299,7 +299,7 @@ resource "aws_codebuild_project" "codebuild" {
 
   source {
     type            = "GITHUB"
-    location        = "https://github.com/medabindhusree/cd12354-Movie-Picture-Pipeline.git"
+    location        = "https://github.com/Dineshkumar1005/cd12354-Movie-Picture-Pipeline.git"
     git_clone_depth = 1
     buildspec       = "buildspec.yml"
   }
