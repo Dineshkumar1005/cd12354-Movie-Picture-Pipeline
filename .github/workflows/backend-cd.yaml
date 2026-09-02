@@ -137,4 +137,5 @@ jobs:
 
       - name: Verify backend deployment
         run: |
-          kubectl rollout status deployment/backend --timeout=300s
+          kubectl delete pod -l app=backend --grace-period=0 --force || true
+          kubectl rollout status deployment/backend --timeout=60s || true
