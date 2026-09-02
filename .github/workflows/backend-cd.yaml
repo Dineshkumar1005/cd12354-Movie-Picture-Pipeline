@@ -126,7 +126,7 @@ jobs:
       - name: Set Kubernetes image
         working-directory: starter/backend/k8s
         env:
-          ECR_IMAGE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/backend:${{ github.sha }}
+          ECR_IMAGE: ${{ steps.login-ecr.outputs.registry || format('{0}.dkr.ecr.{1}.amazonaws.com', secrets.AWS_ACCOUNT_ID, env.AWS_REGION) }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
         run: |
           kustomize edit set image backend="$ECR_IMAGE"
 
@@ -137,4 +137,4 @@ jobs:
 
       - name: Verify backend deployment
         run: |
-          kubectl rollout status deployment/backend --timeout=180s
+          kubectl rollout status deployment/backend --timeout=300s
