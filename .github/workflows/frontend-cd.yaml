@@ -13,7 +13,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: frontend
   EKS_CLUSTER_NAME: cluster
-  REACT_APP_MOVIE_API_URL: http://a918b061273784e9582363e91ad28aad-2010886576.us-east-1.elb.amazonaws.com
+  REACT_APP_MOVIE_API_URL: http://a65016b4612ba4f938b10b6ae15ecb09-1462936013.us-east-1.elb.amazonaws.com
 
 jobs:
   lint:
@@ -99,7 +99,9 @@ jobs:
           push: true
           build-args: |
             REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }}
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
   deploy:
     name: Deploy Frontend to EKS
@@ -126,19 +128,7 @@ jobs:
             --region "$AWS_REGION" \
             --name "$EKS_CLUSTER_NAME"
 
-      - name: Set Kubernetes image
-        working-directory: starter/frontend/k8s
-        env:
-          ECR_IMAGE: ${{ steps.login-ecr.outputs.registry || format('{0}.dkr.ecr.{1}.amazonaws.com', secrets.AWS_ACCOUNT_ID, env.AWS_REGION) }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-        run: |
-          kustomize edit set image frontend="$ECR_IMAGE"
-
       - name: Deploy Kubernetes manifests
-        working-directory: starter/frontend/k8s
         run: |
-          kustomize build | kubectl apply -f -
-
-      - name: Verify frontend deployment
-        run: |
-          kubectl delete pod -l app=frontend --grace-period=0 --force || true
-          kubectl rollout status deployment/frontend --timeout=60s || true
+          kubectl set image deployment/frontend frontend=115368521146.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }}
+          kubectl rollout status deployment/frontend --timeout=90s
